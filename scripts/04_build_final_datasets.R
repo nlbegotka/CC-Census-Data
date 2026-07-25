@@ -1,30 +1,28 @@
 # Step 5 (per instructions doc numbering): build final per-year datasets
 #
 # Joins each year's raw table pulls (decennial + long-form/ACS5), computes
-# the 13 locked derived variables from the formulas in temp/formulas.rds,
-# merges in land area for population density, and stacks state+county+tract
-# into one dataframe per year with a geography_level column.
+# the 13 locked derived variables, merges in land area for population
+# density, and stacks state+county+tract into one dataframe per year with a
+# geography_level column.
+#
+# Variable download information can be found in scripts/variable_codes.R (sourced below), 
+# except pct_unemployed's 2010 entry, which is loaded from temp/pct_unemployed_2010_codes.rds 
+# because data subsetting was more efficient during the API call for this variable.
 #
 # NOT done here (deferred, per the download-only scope of this pass):
 # harmonization onto 2020 boundaries, crosswalks, the full sanity-check
 # report, suppression/jam-value handling, and final QA. See docs/data_dictionary_download.md.
 
 source("scripts/00_setup.R")
+source("scripts/variable_codes.R") # read through to understand download details
 
-formulas <- readRDS("temp/formulas.rds")
+pct_unemployed_2010 <- readRDS("temp/pct_unemployed_2010_codes.rds")
 SQM_PER_SQMI <- 2589988.110336
 
 year_datasets <- list(
   `2000` = c(sf1 = "dec_sf1", sf3 = "dec_sf3"),
   `2010` = c(sf1 = "dec_sf1", acs5 = "acs5"),
   `2020` = c(dhc = "dec_dhc", acs5 = "acs5")
-)
-
-variables_13 <- c(
-  "total_population", "pct_black_nonhisp", "pct_hispanic", "pct_white_nonhisp",
-  "median_age", "pct_65plus", "median_hh_income", "pct_poverty_individuals",
-  "pct_le_hs_education", "pct_unemployed", "pct_renters", "pct_overcrowded"
-  # population_density is computed separately (needs land area), appended after
 )
 
 read_raw <- function(year, dataset_key, dataset_label, geography) {
@@ -58,6 +56,7 @@ compute_variable <- function(wide, formula) {
 build_year <- function(year) {
   message("=== building ", year, " ===")
   datasets <- year_datasets[[as.character(year)]]
+  yr <- as.character(year)
 
   results <- list()
   for (geography in c("state", "county", "tract")) {
@@ -68,10 +67,7 @@ build_year <- function(year) {
     }))
 
     # NAME formatting differs between decennial and ACS5 pulls for the same
-    # GEOID (e.g. "Census Tract 307; Russell County; Alabama" vs
-    # "Census Tract 307, Russell County, Alabama") -- take it from the first
-    # (decennial) dataset only, or distinct(GEOID, NAME) below would produce
-    # two rows per GEOID and silently double every downstream join.
+    # GEOID -- take it from the first (decennial) dataset only
     primary_dataset_key <- names(datasets)[1]
     name_lookup <- read_raw(year, primary_dataset_key, datasets[[primary_dataset_key]], geography) %>%
       distinct(GEOID, NAME)
@@ -82,10 +78,23 @@ build_year <- function(year) {
       pivot_wider(names_from = variable, values_from = value)
 
     out <- wide %>% select(GEOID)
-    for (v in variables_13) {
-      f <- formulas[[paste0(v, "_", year)]]
-      out[[v]] <- compute_variable(wide, f)
-    }
+
+    out$total_population <- compute_variable(wide, variable_codes$total_population[[yr]])
+    out$pct_black_nonhisp <- compute_variable(wide, variable_codes$pct_black_nonhisp[[yr]])
+    out$pct_hispanic <- compute_variable(wide, variable_codes$pct_hispanic[[yr]])
+    out$pct_white_nonhisp <- compute_variable(wide, variable_codes$pct_white_nonhisp[[yr]])
+    out$median_age <- compute_variable(wide, variable_codes$median_age[[yr]])
+    out$pct_65plus <- compute_variable(wide, variable_codes$pct_65plus[[yr]])
+    out$median_hh_income <- compute_variable(wide, variable_codes$median_hh_income[[yr]])
+    out$pct_poverty_individuals <- compute_variable(wide, variable_codes$pct_poverty_individuals[[yr]])
+    out$pct_le_hs_education <- compute_variable(wide, variable_codes$pct_le_hs_education[[yr]])
+    out$pct_unemployed <- compute_variable(
+      wide,
+      if (year == 2010) pct_unemployed_2010 else variable_codes$pct_unemployed[[yr]]
+    )
+    
+    out$pct_renters <- compute_variable(wide, variable_codes$pct_renters[[yr]])
+    out$pct_overcrowded <- compute_variable(wide, variable_codes$pct_overcrowded[[yr]])
 
     land_area <- read_csv(
       sprintf("data/raw/boundaries/%d_land_area_%s.csv", year, geography),

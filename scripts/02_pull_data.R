@@ -12,8 +12,7 @@
 
 source("scripts/00_setup.R")
 
-variable_registry <- readRDS("temp/variable_registry.rds")
-registry_df <- bind_rows(lapply(variable_registry, as_tibble))
+registry_df <- readRDS("temp/variable_registry.rds")
 
 extract_codes <- function(code_str) {
   unique(unlist(regmatches(code_str, gregexpr("[A-Za-z0-9_]+[0-9]{3}[A-Za-z]?", code_str))))

@@ -5,10 +5,7 @@ for the years 2000, 2010, and 2020. This data can be found in `data/processed`.
 Census data for all geographic levels are stacked into a single data frame for each year,
 with a `geography_level` column and a `GEOID` column. E.g. `data/processed/census_2000.csv` 
 includes state, county, and tract-level data for the year 2000. The raw data downloaded 
-to produce these data frames could not be included in the repo due to file size limits. 
-ZCTA and Block Group data can be downloaded, as well. For efficiency, this step will 
-be completed once the current workflow documented below is confirmed to meet research
-standards. 
+to produce the processed data could not be included in the repo due to file size limits. 
 
 ## How the scripts produce the data 
 

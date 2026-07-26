@@ -9,7 +9,7 @@ to produce the processed data could not be included in the repo due to file size
 
 ## How the scripts produce the data 
 
-All raw data comes directly from the U.S. Census Bureau's public API (accessed through the R package
+All raw data comes directly from the U.S. Census Bureau's public API (accessed through R's
 `tidycensus`), plus TIGER/Line boundary files for land area. The pipeline runs as a sequence of scripts:
 
 | Script | What it does |

@@ -1,58 +1,81 @@
-# Data Dictionary — Raw Download Pass (2000 / 2010 / 2020)
+# Census Data Download Overview
 
-This documents the output of the scripts in `scripts/`: raw, non-harmonized Census data at
-state/county/tract level for three census years, plus a supplementary QA check against an
-external dataset. It is a lighter-weight record than the full Step 9 documentation called for in
-`_instructions/project_summary_and_claude_code_instructions.md` — that fuller pass (harmonization
-methodology, crosswalk citation, NHGIS acknowledgment) is deferred until block-group support and
-harmonization onto 2020 boundaries are built.
+The scripts in this folder output state, county, and tract-level Census data of interest
+for the years 2000, 2010, and 2020. This data can be found in `data/processed`. 
+Census data for all geographic levels are stacked into a single data frame for each year,
+with a `geography_level` column and a `GEOID` column. E.g. `data/processed/census_2000.csv` 
+ns state, county, and tract-level data for the year 2000. The raw data downloaded 
+to produce these data frames could not be included in the repo due to file size limits. 
 
-## How this data was built
+## How the scripts produce the data 
 
-All data comes directly from the U.S. Census Bureau's public API (accessed through the R package
-`tidycensus`), plus TIGER/Line boundary files for land area — nothing here is manually entered or
-estimated. The pipeline runs as a sequence of scripts:
+All raw data comes directly from the U.S. Census Bureau's public API (accessed through the R package
+`tidycensus`), plus TIGER/Line boundary files for land area. The pipeline runs as a sequence of scripts:
 
 | Script | What it does |
 |---|---|
 | `00_setup.R` | Loads required R packages, connects to the Census API, and creates the project's folder structure. |
-| `01_variable_discovery.R` | Confirms the exact Census variable codes for all 13 variables, across all three years/datasets, checking each one live against the Census Bureau's own variable list so a renamed or retired code is caught immediately instead of silently pulling the wrong number. |
+| `variable_codes.R` | Not run directly — the static registry of Census codes for all 13 variables, sourced by both `01_variable_discovery.R` and `04_build_final_datasets.R`. |
+| `01_variable_discovery.R` | Confirms the exact Census variable codes for all 13 variables, across all three years/datasets, checking each one live against the Census Bureau's own variable list so a renamed or retired code is caught. |
 | `02_pull_data.R` | Pulls the raw tables from the Census API for the 48 contiguous states + DC, at the state, county, and tract level. |
 | `03_land_area.R` | Pulls land area from Census TIGER/Line boundary files, for every state, county, and tract, used to compute population density. |
-| `04_build_final_datasets.R` | Combines the raw pulls, computes all 13 variables plus population density, and writes the final per-year files in `data/processed/`. |
-| `05_compare_sg_geoids.R` | A one-off check confirming county identifiers in the data Shelby produced for the dashboard line up correctly with the matching census year. |
-
-The exact Census table and variable codes behind each of the 13 variables are in the table below.
+| `04_build_final_datasets.R` | Combines the raw pulls, computes all 13 variables plus population density, and writes the final per-year files to `data/processed/`. |
+| `05_compare_sg_geoids.R` | A one-off check confirming county identifiers in the data SG produced for the dashboard line up correctly with the matching census year. |
 
 ## Scope
 
 - **Years**: 2000, 2010, 2020 (not harmonized to a common boundary — each year uses its own
   native tract/county boundaries as published by the Census Bureau for that year).
-- **Geography**: state, county, tract. 48 contiguous states + DC only (AK, HI, PR, and other
-  territories excluded).
-- **Output**: `data/processed/census_2000.csv`, `census_2010.csv`, `census_2020.csv`. Each file
-  stacks all three geography levels, with a `geography_level` column and a `GEOID` (2/5/11-digit
-  for state/county/tract respectively).
+- **Geography**: state, county, tract. 48 contiguous states + DC only. 
 
-## Locked variable/scope decisions
+## Census data sources
 
-- **Race** (`pct_black_nonhisp`, `pct_white_nonhisp`): "alone" (single race selected), not
+Each year draws on two kinds of Census release: a **full-count** file (every household,
+no sampling error) for basic population/housing totals, and a **sample-based** file
+(collected from a subset of households, carries margin of error) for socioeconomic detail
+like income, poverty, education, and employment. Which specific files fill those two roles
+changes across years, since the Census Bureau's data products themselves changed:
+
+- **SF1** (Summary File 1) — the 2000 and 2010 Decennial Census full-count file. Covers
+  basic population and housing counts (total population, race/ethnicity, age, tenure) asked
+  of every household. Used for **2000 and 2010**.
+- **SF3** (Summary File 3) — the 2000 Decennial Census long-form-sample file. Covers the
+  socioeconomic detail (income, poverty, education, employment, crowding) that used to be
+  collected via the "long form" sent to a sample of households. Used for **2000 only** — the
+  long form was discontinued after 2000.
+- **ACS5** (American Community Survey, 5-year estimates) — the survey that replaced the
+  decennial long form/SF3 starting in the mid-2000s. It runs continuously and is published
+  as rolling 5-year-average estimates (rather than tied to a single census year), which is
+  what makes tract-level estimates reliable. Used for the same socioeconomic detail SF3 used
+  to cover, for **2010 (2006–2010 estimates) and 2020 (2016–2020 estimates)**.
+- **DHC** (Demographic and Housing Characteristics File) — the 2020 Decennial Census's
+  full-count file, replacing what SF1 provided in 2000/2010. Used for **2020 only**.
+
+Put together, by year:
+
+| Year | Full-count source | Socioeconomic (sample) source |
+|---|---|---|
+| 2000 | SF1 | SF3 |
+| 2010 | SF1 | ACS5 (2006–2010) |
+| 2020 | DHC | ACS5 (2016–2020) |
+
+The variable-by-variable breakdown of exactly which table each of these sources supplies
+is in the sourcing table below.
+
+## Variable decisions
+
+- **Race** (`pct_black_nonhisp`, `pct_white_nonhisp`): "alone", not
   "alone or in combination". Non-Hispanic.
 - **`pct_hispanic`**: Hispanic or Latino of any race.
 - **`pct_le_hs_education`**: population 25 years and older; GED/equivalency counted as
   high-school completion.
 - **`pct_poverty_individuals`**: individuals, not families.
 - **`pct_overcrowded`**: housing units with >1.0 occupants per room (owner + renter combined).
-- **`median_hh_income`**: not inflation-adjusted between years (raw dollar values as published:
-  1999 dollars for 2000, 2006–2010 ACS5 dollars for 2010, 2016–2020 ACS5 dollars for 2020).
+- **`median_hh_income`**: not inflation-adjusted between years.
 - **`population_density`**: total population ÷ land area in square miles (land area from
   TIGER/Line `ALAND`, converted from square meters).
 
-## Variable → source table mapping
-
-Full machine-readable version: `logs/variable_discovery_log.csv` (regenerated by
-`scripts/01_variable_discovery.R`, which re-verifies every code against the live Census
-`/variables.json` endpoint before logging it).
+## Variable sourcing information
 
 | Variable | 2000 source | 2010 source | 2020 source | data.census.gov table ID (2000 · 2010 · 2020) |
 |---|---|---|---|---|
@@ -84,10 +107,10 @@ Full machine-readable version: `logs/variable_discovery_log.csv` (regenerated by
   school diploma" and "GED or alternative credential" as two separate line items; both are
   included in the ≤HS numerator.
 
-## Known limitations of this pass (not yet addressed)
+## Potential limitations of this pass 
 
 - **Not harmonized** — each year's tract/county boundaries are that year's own boundaries, not
-  reconciled onto a common (2020) geography. A tract's GEOID and shape can differ across years.
+  reconciled onto a common geography. A tract's GEOID and shape can differ across years.
 - **No suppression/jam-value handling** — small-population tracts with suppressed or
   disclosure-avoided values are not specially flagged; `NA`s from missing table cells are
   treated as 0 when summing sub-categories (e.g., age brackets, education brackets), which can
@@ -98,9 +121,7 @@ Full machine-readable version: `logs/variable_discovery_log.csv` (regenerated by
   `population_density` as `NA` when land area is also 0. This is expected, not missing data.
 - **No margin-of-error tracking** — ACS-sourced variables (2010, 2020 income/poverty/
   education/employment/crowding) carry sampling error; MOEs were pulled but dropped in the
-  final build. Re-add from `data/raw/*_acs5_*.csv` if needed.
+  final build. 
 - **2020 differential privacy** — 2020 Decennial (DHC) counts use the Census Bureau's
   differential-privacy disclosure avoidance system, which injects noise, particularly visible
   in small-population tracts.
-- **Block group level, crosswalks, and harmonization onto 2020 boundaries are not part of this
-  pass** — see `_instructions/project_summary_and_claude_code_instructions.md` Steps 3, 5–9.

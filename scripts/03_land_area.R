@@ -1,4 +1,4 @@
-# Step 4 (per instructions doc numbering): land area for population density
+# Step 3: land area for population density
 #
 # Pulls ALAND (land area, square meters) for state/county/tract, for each of
 # 2000/2010/2020, via tigris full TIGER/Line files (cb = FALSE). Cartographic

@@ -1,26 +1,20 @@
-# Shared per-variable / per-year Census code registry.
+# Census code registry: known, fixed table layouts per (variable, year).
+# Entries are static facts (e.g. "65+ age brackets = codes 20-25, 44-49"),
+# not runtime API lookups.
 #
-# Every entry here is a fixed, known fact about a table's layout (a single
-# code, or a static range like "the 65+ age brackets are codes 20-25 and
-# 44-49") -- nothing in this file depends on querying the Census API at
-# runtime. It is sourced by both 01_variable_discovery.R (which uses it to
-# know what to pull, live-verifies each code still exists, and logs it) and
-# 04_build_final_datasets.R (which uses it directly to compute each
-# variable, so the exact codes are visible in that script without needing
-# to open this one).
+# Used by:
+#   01_variable_discovery.R  - reads codes, verifies they still exist, logs them
+#   04_build_final_datasets.R - reads codes directly to compute variables
 #
-# `pct_unemployed`'s 2010 entry is deliberately absent: that year's table
-# (B23001) has no simple total-unemployed row, so its code list can't be
-# written down as a fixed fact the way every other entry here can. It is
-# resolved at runtime in 01_variable_discovery.R via live label-matching
-# against the Census variable list -- see that script and
-# logs/variable_discovery_log.csv for the resolved result.
+# Exception: pct_unemployed has no 2010 entry. That year's table (B23001)
+# lacks a simple total-unemployed row, so it's resolved at runtime via
+# label-matching in 01_variable_discovery.R (see variable_discovery_log.csv).
 #
-# Fields per (variable, year) entry:
-#   type    "direct" (passthrough) or "ratio" (num/den, summed and divided)
-#   dataset which Census dataset the code(s) come from (sf1/sf3/dhc/acs5)
+# Fields per entry:
+#   type    "direct" (passthrough) or "ratio" (num/den, summed then divided)
+#   dataset source Census dataset (sf1/sf3/dhc/acs5)
 #   num/den Census variable code(s)
-#   note    human-readable description, used only for the discovery log
+#   note    human-readable description (discovery log only)
 
 variable_codes <- list(
   total_population = list(

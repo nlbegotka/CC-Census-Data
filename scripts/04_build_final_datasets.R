@@ -1,4 +1,4 @@
-# Step 5 (per instructions doc numbering): build final per-year datasets
+# Step 4: build final per-year datasets
 #
 # Joins each year's raw table pulls (decennial + long-form/ACS5), computes
 # the 13 locked derived variables, merges in land area for population

@@ -28,8 +28,7 @@ dirs_needed <- c(
   "data/raw/boundaries",
   "data/crosswalks",
   "data/processed",
-  "logs",
-  "docs"
+  "logs"
 )
 for (d in dirs_needed) {
   if (!dir.exists(d)) {

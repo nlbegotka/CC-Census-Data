@@ -22,12 +22,7 @@
 # discovery happens here (the only script that talks to the Census API) and
 # the resolved result is logged and persisted for 04_build_final_datasets.R
 # to consume as-is, without repeating the API call.
-#
-# NOTE ON OTHER TABLE CHANGES ACROSS YEARS (do not "simplify" these to one
-# shared set of codes -- they differ for real reasons; see variable_codes.R
-# for details):
-#  - Tenure (H004) reorders categories between 2000 and 2010/2020.
-#  - Educational attainment: 2020 splits "HS grad/GED" into two line items.
+
 
 source("scripts/00_setup.R")
 source("scripts/variable_codes.R")
@@ -41,9 +36,6 @@ v2020_dhc <- load_variables(2020, "dhc")
 v2020_acs5 <- load_variables(2020, "acs5")
 
 # ---- The one variable resolved via live API discovery, not a fixed fact ---
-# B23001 (2010 unemployment) breaks out by age/sex bracket rather than having
-# a simple total/employed/unemployed row, so its component codes are
-# identified programmatically by label suffix instead of being hand-typed.
 b23001_employed <- v2010_acs5 %>%
   filter(str_detect(concept, "^SEX BY AGE BY EMPLOYMENT STATUS FOR THE POPULATION 16 YEARS AND OVER$")) %>%
   filter(str_ends(label, "Civilian!!Employed")) %>%

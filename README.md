@@ -1,11 +1,28 @@
 # Data Dictionary — Raw Download Pass (2000 / 2010 / 2020)
 
-This documents the output of `scripts/00_setup.R` through `scripts/04_build_final_datasets.R`:
-raw, non-harmonized Census data at state/county/tract level for three census years. It is a
-lighter-weight record than the full Step 9 documentation called for in
+This documents the output of the scripts in `scripts/`: raw, non-harmonized Census data at
+state/county/tract level for three census years, plus a supplementary QA check against an
+external dataset. It is a lighter-weight record than the full Step 9 documentation called for in
 `_instructions/project_summary_and_claude_code_instructions.md` — that fuller pass (harmonization
 methodology, crosswalk citation, NHGIS acknowledgment) is deferred until block-group support and
 harmonization onto 2020 boundaries are built.
+
+## How this data was built
+
+All data comes directly from the U.S. Census Bureau's public API (accessed through the R package
+`tidycensus`), plus TIGER/Line boundary files for land area — nothing here is manually entered or
+estimated. The pipeline runs as a sequence of scripts:
+
+| Script | What it does |
+|---|---|
+| `00_setup.R` | Loads required R packages, connects to the Census API, and creates the project's folder structure. |
+| `01_variable_discovery.R` | Confirms the exact Census variable codes for all 13 variables, across all three years/datasets, checking each one live against the Census Bureau's own variable list so a renamed or retired code is caught immediately instead of silently pulling the wrong number. |
+| `02_pull_data.R` | Pulls the raw tables from the Census API for the 48 contiguous states + DC, at the state, county, and tract level. |
+| `03_land_area.R` | Pulls land area from Census TIGER/Line boundary files, for every state, county, and tract, used to compute population density. |
+| `04_build_final_datasets.R` | Combines the raw pulls, computes all 13 variables plus population density, and writes the final per-year files in `data/processed/`. |
+| `05_compare_sg_geoids.R` | A one-off check confirming county identifiers in the data Shelby produced for the dashboard line up correctly with the matching census year. |
+
+The exact Census table and variable codes behind each of the 13 variables are in the table below.
 
 ## Scope
 

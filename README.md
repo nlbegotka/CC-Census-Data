@@ -7,21 +7,6 @@ with a `geography_level` column and a `GEOID` column. E.g. `data/processed/censu
 includes state, county, and tract-level data for the year 2000. The raw data downloaded 
 to produce the processed data could not be included in the repo due to file size limits. 
 
-## How the scripts produce the data 
-
-All raw data comes directly from the U.S. Census Bureau's public API (accessed through R's
-`tidycensus`), plus TIGER/Line boundary files for land area. The pipeline runs as a sequence of scripts:
-
-| Script | What it does |
-|---|---|
-| `00_setup.R` | Loads required R packages, connects to the Census API, and creates the project's folder structure. |
-| `variable_codes.R` | Not run directly — the static registry of Census codes for all 13 variables, sourced by both `01_variable_discovery.R` and `04_build_final_datasets.R`. |
-| `01_variable_discovery.R` | Confirms the exact Census variable codes for all 13 variables, across all three years/datasets, checking each one live against the Census Bureau's own variable list so a renamed or retired code is caught. |
-| `02_pull_data.R` | Pulls the raw tables from the Census API for the 48 contiguous states + DC, at the state, county, and tract level. |
-| `03_land_area.R` | Pulls land area from Census TIGER/Line boundary files, for every state, county, and tract, used to compute population density. |
-| `04_build_final_datasets.R` | Combines the raw pulls, computes all 13 variables plus population density, and writes the final per-year files to `data/processed/`. |
-| `05_compare_sg_geoids.R` | A one-off check confirming county identifiers in the data SG produced for the dashboard line up correctly with the matching census year. |
-
 ## Scope
 
 - **Years**: 2000, 2010, 2020 (not harmonized to a common boundary — each year uses its own
@@ -107,7 +92,22 @@ is in the sourcing table below.
   school diploma" and "GED or alternative credential" as two separate line items; both are
   included in the ≤HS numerator.
 
-## Potential limitations of this pass 
+## How the scripts produce the data 
+
+All raw data comes directly from the U.S. Census Bureau's public API (accessed through R's
+`tidycensus`), plus TIGER/Line boundary files for land area. The pipeline runs as a sequence of scripts:
+
+| Script | What it does |
+|---|---|
+| `00_setup.R` | Loads required R packages, connects to the Census API, and creates the project's folder structure. |
+| `variable_codes.R` | Not run directly — the static registry of Census codes for all 13 variables, sourced by both `01_variable_discovery.R` and `04_build_final_datasets.R`. |
+| `01_variable_discovery.R` | Confirms the exact Census variable codes for all 13 variables, across all three years/datasets, checking each one live against the Census Bureau's own variable list so a renamed or retired code is caught. |
+| `02_pull_data.R` | Pulls the raw tables from the Census API for the 48 contiguous states + DC, at the state, county, and tract level. |
+| `03_land_area.R` | Pulls land area from Census TIGER/Line boundary files, for every state, county, and tract, used to compute population density. |
+| `04_build_final_datasets.R` | Combines the raw pulls, computes all 13 variables plus population density, and writes the final per-year files to `data/processed/`. |
+| `05_compare_sg_geoids.R` | A one-off check confirming county identifiers in the data SG produced for the dashboard line up correctly with the matching census year. |
+
+## Potential limitations 
 
 - **Not harmonized** — each year's tract/county boundaries are that year's own boundaries, not
   reconciled onto a common geography. A tract's GEOID and shape can differ across years.

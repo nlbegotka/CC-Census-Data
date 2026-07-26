@@ -78,19 +78,6 @@ is in the sourcing table below.
 | `pct_overcrowded` | SF3 H020 (>1.0 occ/room) / H020001 | ACS5 B25014 (>1.0 occ/room) / B25014_001 | ACS5 B25014 (>1.0 occ/room) / B25014_001 | H020 · B25014 · B25014 |
 | `population_density` | `total_population` / land area (TIGER/Line ALAND00, sq mi) | / ALAND10 | / ALAND | N/A — derived from TIGER/Line, not a Census table |
 
-### Notable cross-year table differences (do not assume codes carry over)
-
-- **Tenure (renter %)**: in 2000, "Renter occupied" is H004003. In 2010/2020, the tenure table
-  adds an owner-occupied split ("with mortgage" vs. "free and clear"), pushing renter to
-  H004004 (SF1) / H4_004N (DHC).
-- **Unemployment**: 2000 SF3 and 2020 ACS5 both have a simple employment-status summary table
-  (P043, B23025). The 2010 ACS5 (2006–2010) vintage does not include B23025 — it was introduced
-  in a later ACS table redesign — so 2010 sums the detailed sex-by-age table B23001 across all
-  age/sex brackets instead.
-- **Educational attainment**: 2000 SF3 (P037) and 2010 ACS5 (B15002) list "High school graduate
-  (includes equivalency)" as one category. 2020 ACS5 (B15003) splits this into "Regular high
-  school diploma" and "GED or alternative credential" as two separate line items; both are
-  included in the ≤HS numerator.
 
 ## How the scripts produce the data 
 

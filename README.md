@@ -6,6 +6,9 @@ Census data for all geographic levels are stacked into a single data frame for e
 with a `geography_level` column and a `GEOID` column. E.g. `data/processed/census_2000.csv` 
 ns state, county, and tract-level data for the year 2000. The raw data downloaded 
 to produce these data frames could not be included in the repo due to file size limits. 
+ZCTA and Block Group data can be downloaded, as well. For efficiency, this step will 
+be completed once the current workflow documented below is confirmed to meet research
+standards. 
 
 ## How the scripts produce the data 
 

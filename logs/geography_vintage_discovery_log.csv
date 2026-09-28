@@ -1,0 +1,73 @@
+geography,year_bucket,variable,dataset,resolved_end_year,escalated_by_years,codes_used,note
+block group,2000,median_age,sf1,2000,0,P013001,Direct estimate.
+block group,2000,median_hh_income,sf3,2000,0,P053001,"Direct estimate, 1999 dollars (not inflation-adjusted here)."
+block group,2000,pct_65plus,sf1,2000,0,(P012020+P012021+P012022+P012023+P012024+P012025+P012044+P012045+P012046+P012047+P012048+P012049) / P001001,Sum of male+female 65+ age brackets / total population.
+block group,2000,pct_black_nonhisp,sf1,2000,0,P004006 / P001001,"Black alone, not Hispanic, over total pop."
+block group,2000,pct_hispanic,sf1,2000,0,P004002 / P001001,"Hispanic or Latino, any race, over total pop."
+block group,2000,pct_le_hs_education,sf3,2000,0,(P037003+P037004+P037005+P037006+P037007+P037008+P037009+P037010+P037011+P037020+P037021+P037022+P037023+P037024+P037025+P037026+P037027+P037028) / P037001,"Population 25+, no schooling through HS grad/equivalency, both sexes, over total 25+."
+block group,2000,pct_overcrowded,sf3,2000,0,(H020005+H020006+H020007+H020011+H020012+H020013) / H020001,">1.00 occupants/room (owner+renter, all brackets above 1.00) / total occupied units."
+block group,2000,pct_poverty_individuals,sf3,2000,0,P087002 / P087001,Individuals below poverty / total individuals for whom poverty determined.
+block group,2000,pct_renters,sf1,2000,0,H004003 / H004001,Renter-occupied / total occupied units.
+block group,2000,pct_unemployed,sf3,2000,0,(P043007+P043014) / (P043005+P043012),Unemployed (male+female) / civilian labor force (male+female).
+block group,2000,pct_white_nonhisp,sf1,2000,0,P004005 / P001001,"White alone, not Hispanic, over total pop."
+block group,2000,total_population,sf1,2000,0,P001001,Direct count.
+block group,2010,median_age,sf1,2010,0,P013001,Direct estimate.
+block group,2010,median_hh_income,acs5,2013,3,B19013_001,"Direct estimate, 2006-2010 ACS5."
+block group,2010,pct_65plus,sf1,2010,0,(P012020+P012021+P012022+P012023+P012024+P012025+P012044+P012045+P012046+P012047+P012048+P012049) / P001001,Sum of male+female 65+ age brackets / total population.
+block group,2010,pct_black_nonhisp,sf1,2010,0,P005004 / P001001,"Black alone, not Hispanic, over total pop."
+block group,2010,pct_hispanic,sf1,2010,0,P005010 / P001001,"Hispanic or Latino, any race, over total pop."
+block group,2010,pct_le_hs_education,acs5,2013,3,(B15002_003+B15002_004+B15002_005+B15002_006+B15002_007+B15002_008+B15002_009+B15002_010+B15002_011+B15002_020+B15002_021+B15002_022+B15002_023+B15002_024+B15002_025+B15002_026+B15002_027+B15002_028) / B15002_001,"Population 25+, no schooling through HS grad/GED, both sexes, over total 25+."
+block group,2010,pct_overcrowded,acs5,2013,3,(B25014_005+B25014_006+B25014_007+B25014_011+B25014_012+B25014_013) / B25014_001,">1.00 occupants/room (owner+renter, all brackets above 1.00) / total occupied units."
+block group,2010,pct_poverty_individuals,acs5,2010,0,NOT_TABULATED,"pct_poverty_individuals is not tabulated at block group by the Census Bureau in any ACS5 vintage (B17001 returns an all-NA estimate at every vintage tested, 2013-2022) -- left NA rather than substituting a different table/methodology."
+block group,2010,pct_renters,sf1,2010,0,H004004 / H004001,Renter-occupied / total occupied units (code shifts vs 2000 -- tenure table adds owner mortgage/free-and-clear split).
+block group,2010,pct_unemployed,acs5,2013,3,B23025_005 / B23025_003,"Unemployed / civilian labor force (B23025, confirmed available for block group at 2009-2013 ACS5 -- preferred over the B23001 label-match workaround, which is not published at block group in any vintage tested)."
+block group,2010,pct_white_nonhisp,sf1,2010,0,P005003 / P001001,"White alone, not Hispanic, over total pop."
+block group,2010,total_population,sf1,2010,0,P001001,Direct count.
+block group,2020,median_age,dhc,2020,0,P13_001N,Direct estimate.
+block group,2020,median_hh_income,acs5,2020,0,B19013_001,"Direct estimate, 2016-2020 ACS5."
+block group,2020,pct_65plus,dhc,2020,0,(P12_020N+P12_021N+P12_022N+P12_023N+P12_024N+P12_025N+P12_044N+P12_045N+P12_046N+P12_047N+P12_048N+P12_049N) / P1_001N,Sum of male+female 65+ age brackets / total population.
+block group,2020,pct_black_nonhisp,dhc,2020,0,P5_004N / P1_001N,"Black alone, not Hispanic, over total pop."
+block group,2020,pct_hispanic,dhc,2020,0,P5_010N / P1_001N,"Hispanic or Latino, any race, over total pop."
+block group,2020,pct_le_hs_education,acs5,2020,0,(B15003_002+B15003_003+B15003_004+B15003_005+B15003_006+B15003_007+B15003_008+B15003_009+B15003_010+B15003_011+B15003_012+B15003_013+B15003_014+B15003_015+B15003_016+B15003_017+B15003_018) / B15003_001,"Population 25+, no schooling through HS diploma or GED/alt credential, over total 25+."
+block group,2020,pct_overcrowded,acs5,2020,0,(B25014_005+B25014_006+B25014_007+B25014_011+B25014_012+B25014_013) / B25014_001,">1.00 occupants/room (owner+renter, all brackets above 1.00) / total occupied units."
+block group,2020,pct_poverty_individuals,acs5,2020,0,NOT_TABULATED,"pct_poverty_individuals is not tabulated at block group by the Census Bureau in any ACS5 vintage (B17001 returns an all-NA estimate at every vintage tested, 2013-2022) -- left NA rather than substituting a different table/methodology."
+block group,2020,pct_renters,dhc,2020,0,H4_004N / H4_001N,Renter-occupied / total occupied units.
+block group,2020,pct_unemployed,acs5,2020,0,B23025_005 / B23025_003,"Unemployed / civilian labor force (B23025, confirmed available for block group at 2016-2020 ACS5 -- preferred over the B23001 label-match workaround, which is not published at block group in any vintage tested)."
+block group,2020,pct_white_nonhisp,dhc,2020,0,P5_003N / P1_001N,"White alone, not Hispanic, over total pop."
+block group,2020,total_population,dhc,2020,0,P1_001N,Direct count.
+zcta,2000,median_age,sf1,2000,0,P013001,Direct estimate.
+zcta,2000,median_hh_income,sf3,2000,0,P053001,"Direct estimate, 1999 dollars (not inflation-adjusted here)."
+zcta,2000,pct_65plus,sf1,2000,0,(P012020+P012021+P012022+P012023+P012024+P012025+P012044+P012045+P012046+P012047+P012048+P012049) / P001001,Sum of male+female 65+ age brackets / total population.
+zcta,2000,pct_black_nonhisp,sf1,2000,0,P004006 / P001001,"Black alone, not Hispanic, over total pop."
+zcta,2000,pct_hispanic,sf1,2000,0,P004002 / P001001,"Hispanic or Latino, any race, over total pop."
+zcta,2000,pct_le_hs_education,sf3,2000,0,(P037003+P037004+P037005+P037006+P037007+P037008+P037009+P037010+P037011+P037020+P037021+P037022+P037023+P037024+P037025+P037026+P037027+P037028) / P037001,"Population 25+, no schooling through HS grad/equivalency, both sexes, over total 25+."
+zcta,2000,pct_overcrowded,sf3,2000,0,(H020005+H020006+H020007+H020011+H020012+H020013) / H020001,">1.00 occupants/room (owner+renter, all brackets above 1.00) / total occupied units."
+zcta,2000,pct_poverty_individuals,sf3,2000,0,P087002 / P087001,Individuals below poverty / total individuals for whom poverty determined.
+zcta,2000,pct_renters,sf1,2000,0,H004003 / H004001,Renter-occupied / total occupied units.
+zcta,2000,pct_unemployed,sf3,2000,0,(P043007+P043014) / (P043005+P043012),Unemployed (male+female) / civilian labor force (male+female).
+zcta,2000,pct_white_nonhisp,sf1,2000,0,P004005 / P001001,"White alone, not Hispanic, over total pop."
+zcta,2000,total_population,sf1,2000,0,P001001,Direct count.
+zcta,2010,median_age,sf1,2010,0,P013001,Direct estimate.
+zcta,2010,median_hh_income,acs5,2011,1,B19013_001,"Direct estimate, 2006-2010 ACS5."
+zcta,2010,pct_65plus,sf1,2010,0,(P012020+P012021+P012022+P012023+P012024+P012025+P012044+P012045+P012046+P012047+P012048+P012049) / P001001,Sum of male+female 65+ age brackets / total population.
+zcta,2010,pct_black_nonhisp,sf1,2010,0,P005004 / P001001,"Black alone, not Hispanic, over total pop."
+zcta,2010,pct_hispanic,sf1,2010,0,P005010 / P001001,"Hispanic or Latino, any race, over total pop."
+zcta,2010,pct_le_hs_education,acs5,2011,1,(B15002_003+B15002_004+B15002_005+B15002_006+B15002_007+B15002_008+B15002_009+B15002_010+B15002_011+B15002_020+B15002_021+B15002_022+B15002_023+B15002_024+B15002_025+B15002_026+B15002_027+B15002_028) / B15002_001,"Population 25+, no schooling through HS grad/GED, both sexes, over total 25+."
+zcta,2010,pct_overcrowded,acs5,2011,1,(B25014_005+B25014_006+B25014_007+B25014_011+B25014_012+B25014_013) / B25014_001,">1.00 occupants/room (owner+renter, all brackets above 1.00) / total occupied units."
+zcta,2010,pct_poverty_individuals,acs5,2011,1,B17001_002 / B17001_001,Individuals below poverty / total individuals for whom poverty determined.
+zcta,2010,pct_renters,sf1,2010,0,H004004 / H004001,Renter-occupied / total occupied units (code shifts vs 2000 -- tenure table adds owner mortgage/free-and-clear split).
+zcta,2010,pct_unemployed,acs5,2011,1,B23025_005 / B23025_003,"Unemployed / civilian labor force (B23025, confirmed available for zcta at 2007-2011 ACS5 -- preferred over the B23001 label-match workaround, which is not published at zcta in any vintage tested)."
+zcta,2010,pct_white_nonhisp,sf1,2010,0,P005003 / P001001,"White alone, not Hispanic, over total pop."
+zcta,2010,total_population,sf1,2010,0,P001001,Direct count.
+zcta,2020,median_age,dhc,2020,0,P13_001N,Direct estimate.
+zcta,2020,median_hh_income,acs5,2020,0,B19013_001,"Direct estimate, 2016-2020 ACS5."
+zcta,2020,pct_65plus,dhc,2020,0,(P12_020N+P12_021N+P12_022N+P12_023N+P12_024N+P12_025N+P12_044N+P12_045N+P12_046N+P12_047N+P12_048N+P12_049N) / P1_001N,Sum of male+female 65+ age brackets / total population.
+zcta,2020,pct_black_nonhisp,dhc,2020,0,P5_004N / P1_001N,"Black alone, not Hispanic, over total pop."
+zcta,2020,pct_hispanic,dhc,2020,0,P5_010N / P1_001N,"Hispanic or Latino, any race, over total pop."
+zcta,2020,pct_le_hs_education,acs5,2020,0,(B15003_002+B15003_003+B15003_004+B15003_005+B15003_006+B15003_007+B15003_008+B15003_009+B15003_010+B15003_011+B15003_012+B15003_013+B15003_014+B15003_015+B15003_016+B15003_017+B15003_018) / B15003_001,"Population 25+, no schooling through HS diploma or GED/alt credential, over total 25+."
+zcta,2020,pct_overcrowded,acs5,2020,0,(B25014_005+B25014_006+B25014_007+B25014_011+B25014_012+B25014_013) / B25014_001,">1.00 occupants/room (owner+renter, all brackets above 1.00) / total occupied units."
+zcta,2020,pct_poverty_individuals,acs5,2020,0,B17001_002 / B17001_001,Individuals below poverty / total individuals for whom poverty determined.
+zcta,2020,pct_renters,dhc,2020,0,H4_004N / H4_001N,Renter-occupied / total occupied units.
+zcta,2020,pct_unemployed,acs5,2020,0,B23025_005 / B23025_003,"Unemployed / civilian labor force (B23025, confirmed available for zcta at 2016-2020 ACS5 -- preferred over the B23001 label-match workaround, which is not published at zcta in any vintage tested)."
+zcta,2020,pct_white_nonhisp,dhc,2020,0,P5_003N / P1_001N,"White alone, not Hispanic, over total pop."
+zcta,2020,total_population,dhc,2020,0,P1_001N,Direct count.

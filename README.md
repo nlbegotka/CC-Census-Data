@@ -1,17 +1,21 @@
 # Census Data Download Overview
 
-The scripts in this folder output state, county, and tract-level Census data of interest
-for the years 2000, 2010, and 2020. This data can be found in `data/processed`. 
+The scripts in this folder output state, county, tract, ZCTA, and block-group-level Census data
+of interest for the years 2000, 2010, and 2020. This data can be found in `data/processed`.
 Census data for all geographic levels are stacked into a single data frame for each year,
-with a `geography_level` column and a `GEOID` column. E.g. `data/processed/census_2000.csv` 
-includes state, county, and tract-level data for the year 2000. The raw data downloaded 
-to produce the processed data could not be included in the repo due to file size limits. 
+with a `geography_level` column and a `GEOID` column. E.g. `data/processed/census_2000.csv`
+includes state, county, tract, ZCTA, and block-group-level data for the year 2000. The raw data
+downloaded to produce the processed data could not be included in the repo due to file size limits.
 
 ## Scope
 
 - **Years**: 2000, 2010, 2020 (not harmonized to a common boundary — each year uses its own
   native tract/county boundaries as published by the Census Bureau for that year).
-- **Geography**: state, county, tract. 48 contiguous states + DC only. 
+- **Geography**: state, county, tract, ZCTA, block group. 48 contiguous states + DC only.
+  For ACS5-sourced variables, ZCTA and block group can draw on a *different* ACS5 vintage
+  than state/county/tract for the same `year` value — the 2006-2010 ACS5 vintage doesn't
+  publish ZCTA or block-group geography at all, so those two levels fall back to the earliest
+  later vintage that does. See [Geography-level vintage exceptions](#geography-level-vintage-exceptions).
 
 ## Census data sources
 
@@ -78,6 +82,50 @@ is in the sourcing table below.
 | `pct_overcrowded` | SF3 H020 (>1.0 occ/room) / H020001 | ACS5 B25014 (>1.0 occ/room) / B25014_001 | ACS5 B25014 (>1.0 occ/room) / B25014_001 | H020 · B25014 · B25014 |
 | `population_density` | `total_population` / land area (TIGER/Line ALAND00, sq mi) | / ALAND10 | / ALAND | N/A — derived from TIGER/Line, not a Census table |
 
+## Geography-level vintage exceptions
+
+State/county/tract's ACS5-sourced variables (`median_hh_income`, `pct_poverty_individuals`,
+`pct_le_hs_education`, `pct_unemployed`, `pct_overcrowded`) always use the vintage in the table
+above (2006–2010 for the 2010 bucket, 2016–2020 for the 2020 bucket). **ZCTA and block group do
+not** — confirmed live against the Census API, the 2006–2010 ACS5 vintage does not publish ZCTA
+or block-group geography at all (not just one table), and tidycensus additionally refuses
+block-group requests for any vintage before 2013 regardless of what the API itself supports. So
+for these two geography levels only, each ACS5-sourced variable is independently escalated
+forward, one year at a time, to the earliest later vintage that actually returns data for it —
+this can differ from variable to variable and from the ZCTA/block-group resolution for the same
+variable. This is intentional (state/county/tract data is never re-pulled to "fix" the mismatch)
+and resolved live rather than hardcoded, since a table's exact first-available vintage isn't
+published anywhere as a stable fact. For `pct_unemployed` specifically, once an escalated vintage
+is found where table B23025 (a clean total-unemployed count) exists, it's used directly instead
+of replicating the label-matching workaround state/county/tract needed for B23001.
+
+Confirmed examples from initial testing (not a complete list — the authoritative, current
+mapping for every variable/year is written by `01b_geography_vintage_discovery.R` to
+`logs/geography_vintage_discovery_log.csv` each time the pipeline runs):
+
+| Variable | Geography | State/county/tract vintage | Resolved vintage |
+|---|---|---|---|
+| `median_hh_income` | ZCTA | ACS5 2006–2010 | ACS5 2007–2011 (earliest vintage ZCTA data exists at all) |
+| any ACS5-sourced 2010-bucket variable | block group | ACS5 2006–2010 | no earlier than ACS5 2009–2013 (tidycensus refuses block-group requests before this, regardless of Census API support) |
+| `pct_unemployed` | block group | ACS5 2006–2010, B23001 workaround | B23025 (the same clean table 2020 already uses), at whatever vintage it's first available for block group — table B23001 (the workaround the 2010 bucket otherwise needs) is not published at block group in any vintage tested, so B23025 is used unconditionally at this geography rather than only once escalation happens to land on a vintage where B23025 exists |
+
+Decennial-sourced variables (`total_population` and the other SF1/DHC-based variables) have no
+vintage concept — they're a fixed, single-year full count — so no escalation applies to them at
+any geography level.
+
+**`pct_poverty_individuals` is left `NA` at block group, for every year** — not a vintage
+problem. B17001 (the table this variable is sourced from at every other geography level) returns
+an all-`NA` estimate at block group in every ACS5 vintage tested (2013 through 2022); the Census
+Bureau evidently does not tabulate poverty status this granularly, for reliability/disclosure
+reasons, and no amount of vintage escalation changes that. `01b_geography_vintage_discovery.R`
+hardcodes this as a known exception (skips the live escalation attempt entirely for this one
+combination) rather than rediscovering the same negative result on every run. A different table,
+`C17002` ("Ratio of Income to Poverty Level"), *is* fully tabulated at block group — and at every
+other geography level, including ZCTA (confirmed down to the 2011 vintage) — and could stand in
+for B17001 (summing the `Under .50` and `.50 to .99` bins over the total, as the "% below poverty"
+equivalent) if this gap is worth closing later. That substitution isn't implemented here since it
+changes the underlying table/methodology rather than just the vintage, which is a decision
+deliberately left open rather than made unilaterally.
 
 ## How the scripts produce the data 
 
@@ -89,9 +137,10 @@ All raw data comes directly from the U.S. Census Bureau's public API (accessed t
 | `00_setup.R` | Loads required R packages, connects to the Census API, and creates the project's folder structure. |
 | `variable_codes.R` | Not run directly — the static registry of Census codes for all 13 variables, sourced by both `01_variable_discovery.R` and `04_build_final_datasets.R`. |
 | `01_variable_discovery.R` | Confirms the exact Census variable codes for all 13 variables, across all three years/datasets, checking each one live against the Census Bureau's own variable list so a renamed or retired code is caught. |
-| `02_pull_data.R` | Pulls the raw tables from the Census API for the 48 contiguous states + DC, at the state, county, and tract level. |
-| `03_land_area.R` | Pulls land area from Census TIGER/Line boundary files, for every state, county, and tract, used to compute population density. |
-| `04_build_final_datasets.R` | Combines the raw pulls, computes all 13 variables plus population density, and writes the final per-year files to `data/processed/`. |
+| `01b_geography_vintage_discovery.R` | For ZCTA and block group only: live-tests each variable against progressively later ACS5 vintages until one actually returns data at that geography (see [Geography-level vintage exceptions](#geography-level-vintage-exceptions)), and persists the resolved vintage/formula for `02_pull_data.R` and `04_build_final_datasets.R` to use. |
+| `02_pull_data.R` | Pulls the raw tables from the Census API for the 48 contiguous states + DC, at the state, county, tract, ZCTA, and block-group level. ZCTA/block-group ACS5 pulls use the vintage overrides from `01b` instead of the state/county/tract vintage. |
+| `03_land_area.R` | Pulls land area from Census TIGER/Line boundary files, for every state, county, tract, ZCTA, and block group, used to compute population density. |
+| `04_build_final_datasets.R` | Combines the raw pulls, computes all 13 variables plus population density, and writes the final per-year files to `data/processed/`, stacking all five geography levels. |
 | `05_compare_sg_geoids.R` | A one-off check confirming county identifiers in the data SG produced for the dashboard line up correctly with the matching census year. |
 
 ## Potential limitations 
@@ -112,3 +161,18 @@ All raw data comes directly from the U.S. Census Bureau's public API (accessed t
 - **2020 differential privacy** — 2020 Decennial (DHC) counts use the Census Bureau's
   differential-privacy disclosure avoidance system, which injects noise, particularly visible
   in small-population tracts.
+- **ZCTA/block-group vintage mismatch** — for ACS5-sourced variables, ZCTA and block group can
+  come from a different (later) ACS5 vintage than state/county/tract for the same `year` value.
+  See [Geography-level vintage exceptions](#geography-level-vintage-exceptions).
+- **ZCTA state assignment is approximate** — ZCTA GEOIDs carry no state FIPS code, so scoping
+  ZCTAs to the 48 contiguous states + DC uses a centroid-in-polygon spatial join against state
+  boundaries. A handful of ZCTAs straddle a state line; each gets assigned to a single state
+  based on where its centroid falls, which can occasionally be the "wrong" state for an
+  oddly-shaped ZCTA.
+- **Block group has a hard floor on how far back it goes** — tidycensus refuses ACS5 block-group
+  requests before the 2009-2013 vintage regardless of Census API support, so no amount of vintage
+  escalation can produce block-group ACS5 data earlier than that.
+- **`pct_poverty_individuals` is `NA` at block group, for every year** — B17001 is never
+  tabulated at block group by the Census Bureau, in any ACS5 vintage. See
+  [Geography-level vintage exceptions](#geography-level-vintage-exceptions) for the alternative
+  table (`C17002`) that could close this gap if desired.

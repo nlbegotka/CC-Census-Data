@@ -113,13 +113,17 @@ Decennial-sourced variables (`total_population` and the other SF1/DHC-based vari
 vintage concept — they're a fixed, single-year full count — so no escalation applies to them at
 any geography level.
 
-**`pct_poverty_individuals` is left `NA` at block group, for every year** — not a vintage
-problem. B17001 (the table this variable is sourced from at every other geography level) returns
-an all-`NA` estimate at block group in every ACS5 vintage tested (2013 through 2022); the Census
-Bureau evidently does not tabulate poverty status this granularly, for reliability/disclosure
-reasons, and no amount of vintage escalation changes that. `01b_geography_vintage_discovery.R`
-hardcodes this as a known exception (skips the live escalation attempt entirely for this one
-combination) rather than rediscovering the same negative result on every run. A different table,
+**`pct_poverty_individuals` is left `NA` at block group for the 2010 and 2020 buckets** — not a
+vintage problem. B17001 (the ACS5 table this variable is sourced from at every other geography
+level, and for 2010/2020 at every geography level other than block group) returns an all-`NA`
+estimate at block group in every ACS5 vintage tested (2013 through 2022); the Census Bureau
+evidently does not tabulate poverty status this granularly, for reliability/disclosure reasons,
+and no amount of vintage escalation changes that. 2000 is unaffected — that bucket sources
+`pct_poverty_individuals` from SF3 (a decennial long-form table, not ACS5/B17001), and block
+group works normally there (~0.6% `NA`, in line with ordinary small-area suppression, not the
+~100% seen in 2010/2020). `01b_geography_vintage_discovery.R` hardcodes the 2010/2020 gap as a
+known exception (skips the live escalation attempt entirely for those two combinations) rather
+than rediscovering the same negative result on every run. A different table,
 `C17002` ("Ratio of Income to Poverty Level"), *is* fully tabulated at block group — and at every
 other geography level, including ZCTA (confirmed down to the 2011 vintage) — and could stand in
 for B17001 (summing the `Under .50` and `.50 to .99` bins over the total, as the "% below poverty"
@@ -142,6 +146,7 @@ All raw data comes directly from the U.S. Census Bureau's public API (accessed t
 | `03_land_area.R` | Pulls land area from Census TIGER/Line boundary files, for every state, county, tract, ZCTA, and block group, used to compute population density. |
 | `04_build_final_datasets.R` | Combines the raw pulls, computes all 13 variables plus population density, and writes the final per-year files to `data/processed/`, stacking all five geography levels. |
 | `05_compare_sg_geoids.R` | A one-off check confirming county identifiers in the data SG produced for the dashboard line up correctly with the matching census year. |
+| `06_compare_church_geoids.R` | A one-off check comparing GEOIDs in SG's church/religious-organization panel dataset (state/county/tract derived from its block-group GEOID, plus its native block-group and ZCTA columns) against this pipeline's own extraction, across all 5 geography levels and all three years, with the same cross-year mislabel diagnostic `05` uses. |
 
 ## Potential limitations 
 
@@ -165,14 +170,22 @@ All raw data comes directly from the U.S. Census Bureau's public API (accessed t
   come from a different (later) ACS5 vintage than state/county/tract for the same `year` value.
   See [Geography-level vintage exceptions](#geography-level-vintage-exceptions).
 - **ZCTA state assignment is approximate** — ZCTA GEOIDs carry no state FIPS code, so scoping
-  ZCTAs to the 48 contiguous states + DC uses a centroid-in-polygon spatial join against state
-  boundaries. A handful of ZCTAs straddle a state line; each gets assigned to a single state
-  based on where its centroid falls, which can occasionally be the "wrong" state for an
-  oddly-shaped ZCTA.
+  ZCTAs to the 48 contiguous states + DC uses a point-on-surface-in-polygon spatial join against
+  state boundaries (`sf::st_point_on_surface()`, guaranteed to land on the ZCTA's own shape). An
+  earlier version of this join used a plain geometric centroid (`st_centroid()`) instead, which
+  is *not* guaranteed to fall inside a multi-part or concave polygon — for ZCTAs with offshore
+  islands or irregular, concave shapes, the centroid could land in a gap between pieces (often
+  open water), outside every state polygon, silently dropping an otherwise valid ZCTA from scope
+  entirely. That was found and fixed (confirmed to have affected exactly 4 ZCTAs in 2000, 4 in
+  2010, and 3 in 2020, nationally) via a real GEOID comparison against an external dataset. The
+  remaining, inherent limitation: a handful of ZCTAs genuinely straddle a state line, and each
+  still gets assigned to a single state based on where its on-surface point falls, which can
+  occasionally be the "wrong" side for an oddly-shaped, boundary-straddling ZCTA.
 - **Block group has a hard floor on how far back it goes** — tidycensus refuses ACS5 block-group
   requests before the 2009-2013 vintage regardless of Census API support, so no amount of vintage
   escalation can produce block-group ACS5 data earlier than that.
-- **`pct_poverty_individuals` is `NA` at block group, for every year** — B17001 is never
-  tabulated at block group by the Census Bureau, in any ACS5 vintage. See
-  [Geography-level vintage exceptions](#geography-level-vintage-exceptions) for the alternative
-  table (`C17002`) that could close this gap if desired.
+- **`pct_poverty_individuals` is `NA` at block group for the 2010 and 2020 buckets** — B17001
+  (the ACS5 table those two years source it from) is never tabulated at block group by the
+  Census Bureau, in any ACS5 vintage. 2000 is unaffected, since it sources this variable from
+  SF3 instead. See [Geography-level vintage exceptions](#geography-level-vintage-exceptions)
+  for the alternative table (`C17002`) that could close this gap if desired.
